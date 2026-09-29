@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>GSC Fetch</title></head>
+<body>
+<pre id="out">Loading...</pre>
+<script>
+(async () => {
+  const out = document.getElementById('out');
+  try {
+    const raw = decodeURIComponent(location.href);
+    const get = (k) => {
+      const m = raw.match(new RegExp('[?&]' + k + '=([^&#]*)'));
+      return m ? m[1] : null;
+    };
+    const token = get('token');
+    const site = get('site');
+    const body = {
+      startDate: get('start'),
+      endDate: get('end'),
+      dimensions: (get('dims') || 'query').split(','),
+      rowLimit: parseInt(get('limit') || '25000', 10),
+      startRow: parseInt(get('row') || '0', 10),
+      dataState: 'all'
+    };
+    const country = get('country');
+    if (country) {
+      body.dimensionFilterGroups = [{ filters: [{ dimension: 'country', operator: 'equals', expression: country }] }];
+    }
+    const url = 'https://www.googleapis.com/webmasters/v3/sites/' + encodeURIComponent(site)
+      + '/searchAnalytics/query?access_token=' + encodeURIComponent(token);
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const text = await resp.text();
+    out.textContent = 'HTTP ' + resp.status + '\n' + text;
+  } catch (e) {
+    out.textContent = 'JS ERROR: ' + e.message;
+  }
+})();
+</script>
+</body>
+</html>
