@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>GSC Fetch</title></head>
+<body>
+<pre id="out">Loading...</pre>
+<script>
+// Usage: gsc.html#token=...&site=sc-domain:fertico.rs&start=2026-06-29&end=2026-09-27&dims=query,page&country=srb&limit=25000&row=0
+(async () => {
+  const out = document.getElementById('out');
+  try {
+    const p = new URLSearchParams(location.hash.slice(1));
+    const token = p.get('token');
+    const site = p.get('site');
+    const dims = (p.get('dims') || 'query').split(',');
+    const body = {
+      startDate: p.get('start'),
+      endDate: p.get('end'),
+      dimensions: dims,
+      rowLimit: parseInt(p.get('limit') || '25000', 10),
+      startRow: parseInt(p.get('row') || '0', 10),
+      dataState: 'all'
+    };
+    const country = p.get('country');
+    if (country) {
+      body.dimensionFilterGroups = [{ filters: [{ dimension: 'country', operator: 'equals', expression: country }] }];
+    }
+    const type = p.get('type');
+    if (type) {
+      body.type = type;
+    }
+    const url = 'https://www.googleapis.com/webmasters/v3/sites/' + encodeURIComponent(site) + '/searchAnalytics/query';
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const text = await resp.text();
+    out.textContent = 'HTTP ' + resp.status + '\n' + text;
+  } catch (e) {
+    out.textContent = 'JS ERROR: ' + e.message;
+  }
+})();
+</script>
+</body>
+</html>
