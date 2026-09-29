@@ -4,11 +4,11 @@
 <body>
 <pre id="out">Loading...</pre>
 <script>
-// Usage: gsc.html#token=...&site=sc-domain:fertico.rs&start=2026-06-29&end=2026-09-27&dims=query,page&country=srb&limit=25000&row=0
+// Usage: gsc.html?token=...&site=sc-domain:fertico.rs&start=2026-06-27&end=2026-09-26&dims=query,page&country=srb&limit=25000&row=0
 (async () => {
   const out = document.getElementById('out');
   try {
-    const p = new URLSearchParams(location.hash.slice(1));
+    const p = new URLSearchParams(location.search || location.hash.slice(1));
     const token = p.get('token');
     const site = p.get('site');
     const dims = (p.get('dims') || 'query').split(',');
@@ -24,10 +24,6 @@
     if (country) {
       body.dimensionFilterGroups = [{ filters: [{ dimension: 'country', operator: 'equals', expression: country }] }];
     }
-    const type = p.get('type');
-    if (type) {
-      body.type = type;
-    }
     const url = 'https://www.googleapis.com/webmasters/v3/sites/' + encodeURIComponent(site) + '/searchAnalytics/query';
     const resp = await fetch(url, {
       method: 'POST',
@@ -36,8 +32,10 @@
     });
     const text = await resp.text();
     out.textContent = 'HTTP ' + resp.status + '\n' + text;
+    document.title = 'DONE ' + resp.status;
   } catch (e) {
     out.textContent = 'JS ERROR: ' + e.message;
+    document.title = 'ERROR';
   }
 })();
 </script>
