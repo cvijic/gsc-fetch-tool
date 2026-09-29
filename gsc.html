@@ -4,26 +4,31 @@
 <body>
 <pre id="out">Loading...</pre>
 <script>
-// Usage: gsc.html?token=...&site=sc-domain:fertico.rs&start=2026-06-27&end=2026-09-26&dims=query,page&country=srb&limit=25000&row=0
+// Params can be anywhere in the URL (works through htmlpreview nesting)
 (async () => {
   const out = document.getElementById('out');
   try {
-    const p = new URLSearchParams(location.search || location.hash.slice(1));
-    const token = p.get('token');
-    const site = p.get('site');
-    const dims = (p.get('dims') || 'query').split(',');
+    const raw = decodeURIComponent(location.href);
+    const get = (k) => {
+      const m = raw.match(new RegExp('[?&]' + k + '=([^&#]*)'));
+      return m ? m[1] : null;
+    };
+    const token = get('token');
+    const site = get('site');
+    const dims = (get('dims') || 'query').split(',');
     const body = {
-      startDate: p.get('start'),
-      endDate: p.get('end'),
+      startDate: get('start'),
+      endDate: get('end'),
       dimensions: dims,
-      rowLimit: parseInt(p.get('limit') || '25000', 10),
-      startRow: parseInt(p.get('row') || '0', 10),
+      rowLimit: parseInt(get('limit') || '25000', 10),
+      startRow: parseInt(get('row') || '0', 10),
       dataState: 'all'
     };
-    const country = p.get('country');
+    const country = get('country');
     if (country) {
       body.dimensionFilterGroups = [{ filters: [{ dimension: 'country', operator: 'equals', expression: country }] }];
     }
+    out.textContent = 'Fetching ' + site + ' ' + get('start') + '..' + get('end') + ' ...';
     const url = 'https://www.googleapis.com/webmasters/v3/sites/' + encodeURIComponent(site)
       + '/searchAnalytics/query?access_token=' + encodeURIComponent(token);
     const resp = await fetch(url, {
