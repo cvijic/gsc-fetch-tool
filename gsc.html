@@ -24,10 +24,11 @@
     if (country) {
       body.dimensionFilterGroups = [{ filters: [{ dimension: 'country', operator: 'equals', expression: country }] }];
     }
-    const url = 'https://www.googleapis.com/webmasters/v3/sites/' + encodeURIComponent(site) + '/searchAnalytics/query';
+    const url = 'https://www.googleapis.com/webmasters/v3/sites/' + encodeURIComponent(site)
+      + '/searchAnalytics/query?access_token=' + encodeURIComponent(token);
     const resp = await fetch(url, {
       method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
     const text = await resp.text();
